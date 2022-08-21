@@ -5,13 +5,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
-import androidx.compose.material.Card
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import io.ktor.client.*
@@ -72,53 +75,52 @@ fun App() {
     GlobalScope.launch { startChat(wsClient) }
     //region
 
-    Column {
-        LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
-            items(list, key = {
-                it.id
-            }) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().height(30.dp)
-                        .background(color = Color.Yellow),
-                    backgroundColor = Color.Yellow
-                ) {
-                    Text(it.text)
-                }
-            }
-        }
-        Row(verticalAlignment = Alignment.Bottom) {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(0.7f).then(Modifier.padding(30.dp)),
-                value = sentMessage,
-                onValueChange = {
-                    sentMessage = it
-
-                })
-            Spacer(modifier = Modifier.width(30.dp))
-            Button(modifier = Modifier.height(60.dp),
-                onClick = {
-                    GlobalScope.launch {
-                        sendMessage(wsClient, sentMessage.text)
-                    }
-                }) {
-                Text("Send")
-            }
-        }
-
-    }
+//    Column {
+//        LazyColumn(Modifier.fillMaxWidth().background(Green).weight(1f)) {
+//            items(list, key = {
+//                it.id
+//            }) {
+//                Surface(
+//                    modifier = Modifier.fillMaxWidth().height(30.dp)
+//                        .background(color = Yellow),
+//                    contentColor = Black,
+//                ) {
+//                    Text(it.text)
+//                }
+//            }
+//        }
+//        Row(verticalAlignment = Alignment.Bottom) {
+//            OutlinedTextField(
+//                modifier = Modifier.fillMaxWidth(0.7f).then(Modifier.padding(30.dp)),
+//                value = sentMessage,
+//                onValueChange = {
+//                    sentMessage = it
+//
+//                })
+//            Spacer(modifier = Modifier.width(30.dp))
+//            Button(modifier = Modifier.height(60.dp),
+//                onClick = {
+//                    GlobalScope.launch {
+//                        sendMessage(wsClient, sentMessage.text)
+//                    }
+//                }) {
+//                Text("Send")
+//            }
+//        }
+//
+//    }
     //endregion
 
 
 //    Column {
-//        LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
+//        LazyColumn(Modifier.fillMaxWidth().background(Green).weight(1f)) {
 //            items(list, key = {
 //                it.id
 //            }) {
-//                Card(
+//                Surface(
 //                    modifier = Modifier.fillMaxWidth().height(30.dp),
-//                    backgroundColor = Color.Black
 //                ) {
-//                    Text(it.text, color = Color.White)
+//                    Text(it.text, color = Black)
 //                }
 //            }
 //        }
