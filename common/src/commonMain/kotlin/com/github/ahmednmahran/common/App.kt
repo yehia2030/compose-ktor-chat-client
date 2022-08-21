@@ -4,27 +4,25 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Card
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlin.properties.Delegates
-import kotlin.properties.ObservableProperty
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 // todo 1 change screen background
 // todo 2 fix message sending logic
@@ -39,25 +37,25 @@ val job by lazy {
     }
 
 }
+var cnt = 0
 
 @Composable
 fun App() {
-
     var text by remember { mutableStateOf("Send Message!") }
     var sentMessage by remember { mutableStateOf(TextFieldValue("your Message!")) }
-    var receivedMessage by remember { mutableStateOf("received") }
-    val list = mutableListOf<String>()
-    var chat by mutableStateOf(list)
+    var list: List<ChatModel> by remember { mutableStateOf(listOf()) }
     val platformName = getPlatformName()
     if (!job.isActive)
         job.start()
 
     suspend fun startChat(wsClient: WsClient) {
         try {
-            wsClient.receive {
-//                writeMessage(it)
-                list.add(it)
-                println("startChat: $chat")
+            wsClient.receive { it ->
+                writeMessage(it)
+                val arrayList = ArrayList(list.map { it })
+                arrayList.add(ChatModel("${++cnt}", it))
+                list = arrayList
+                println("startChat: $list")
             }
         } catch (e: Exception) {
             if (e is ClosedReceiveChannelException) {
@@ -75,18 +73,20 @@ fun App() {
     //region
 
     Column {
-
-        LazyColumn(Modifier.weight(1f)) {
-            items(items = chat + listOf("hello","Ahmed", " Salaaaaam"), itemContent = { item ->
+        LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
+            items(list, key = {
+                it.id
+            }) {
                 Card(
-                    modifier = Modifier.width(80.dp).height(30.dp).background(color = Color.Yellow)
+                    modifier = Modifier.fillMaxWidth().height(30.dp)
+                        .background(color = Color.Yellow),
+                    backgroundColor = Color.Yellow
                 ) {
-                    Text(item)
+                    Text(it.text)
                 }
-
-            })
+            }
         }
-        Row (verticalAlignment = Alignment.Bottom){
+        Row(verticalAlignment = Alignment.Bottom) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(0.7f).then(Modifier.padding(30.dp)),
                 value = sentMessage,
@@ -110,8 +110,17 @@ fun App() {
 
 
 //    Column {
-//        Card {
-//            Text(text = receivedMessage)
+//        LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
+//            items(list, key = {
+//                it.id
+//            }) {
+//                Card(
+//                    modifier = Modifier.fillMaxWidth().height(30.dp),
+//                    backgroundColor = Color.Black
+//                ) {
+//                    Text(it.text, color = Color.White)
+//                }
+//            }
 //        }
 //        Row {
 //
@@ -138,7 +147,7 @@ fun App() {
 }
 
 
-fun receiveFlow(message: String) = flow<String> {
+fun receiveFlow(message: String) = flow {
     emit(message)
 }
 
@@ -200,46 +209,3 @@ class WsClient(private val client: HttpClient) {
         }
     }
 }
-
-//suspend fun startChat() {
-//    val client = HttpClient {
-//        install(WebSockets)
-//    }
-//    client.webSocket(method = HttpMethod.Get, host = "10.0.2.2", port = 8080, path = "/chat") {
-//        val messageOutputRoutine = launch { outputMessages() }
-//        val userInputRoutine = launch { inputMessages() }
-//
-//        userInputRoutine.join() // Wait for completion; either "exit" or error
-//        messageOutputRoutine.cancelAndJoin()
-//    }
-//
-//    client.close()
-//    println("Connection closed. Goodbye!")
-//}
-//
-//var received = ""
-//
-//fun DefaultClientWebSocketSession.outputMessages() = flow {
-//    try {
-//        for (message in incoming) {
-//            message as? Frame.Text ?: continue
-//            emit(message.readText())
-//            received = message.readText()+"\n"
-//        }
-//    } catch (e: Exception) {
-//        emit("Error while receiving: " + e.message)
-//    }
-//}
-//
-//suspend fun DefaultClientWebSocketSession.inputMessages() {
-//    while (true) {
-//
-//        if (inputMessage.equals("exit", true)) return
-//        try {
-//            send(inputMessage)
-//        } catch (e: Exception) {
-//            println("Error while sending: " + e.message)
-//            return
-//        }
-//    }
-//}
